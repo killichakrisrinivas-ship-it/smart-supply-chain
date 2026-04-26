@@ -106,7 +106,7 @@ Open **http://localhost:3000** in your browser.
 
 ---
 
-## Scaling Story (for judges)
+## Scaling Story 
 
 Current: Single-JVM graph + Node.js API + MongoDB  
 Next step:
