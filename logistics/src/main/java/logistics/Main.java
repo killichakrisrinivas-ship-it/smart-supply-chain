@@ -59,7 +59,10 @@ public class Main {
         separator("STEP 2: Core Routing Tests");
         runRoutingTests(graph);
 
-        // ── Steps 3-5 require Gemini ──────────────────────────────────────────
+        // ── STEP 3: Benchmarks ───────────────────────────────────────────────
+        BenchmarkRunner.runBenchmarks();
+
+        // ── Steps 4-6 require Gemini ──────────────────────────────────────────
         GeminiService ai;
         try {
             ai = new GeminiService();

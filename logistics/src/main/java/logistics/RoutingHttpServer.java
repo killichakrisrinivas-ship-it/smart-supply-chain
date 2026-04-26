@@ -113,6 +113,7 @@ public class RoutingHttpServer {
         String query = exchange.getRequestURI().getQuery();
         String from  = getParam(query, "from");
         String to    = getParam(query, "to");
+        String time  = getParam(query, "time");
 
         if (from == null || to == null) {
             sendJson(exchange, 400, "{\"error\":\"'from' and 'to' query params required\"}");
@@ -125,7 +126,7 @@ public class RoutingHttpServer {
             return;
         }
 
-        RouteResult result = graph.findShortestPath(from.toUpperCase(), to.toUpperCase());
+        RouteResult result = graph.findShortestPath(from.toUpperCase(), to.toUpperCase(), time);
         sendJson(exchange, 200, result.toJson());
     }
 

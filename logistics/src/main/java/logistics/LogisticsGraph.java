@@ -120,6 +120,10 @@ public class LogisticsGraph {
     // ── Dijkstra with version-aware cache ─────────────────────────────────────
 
     public RouteResult findShortestPath(String source, String destination) {
+        return findShortestPath(source, destination, null);
+    }
+
+    public RouteResult findShortestPath(String source, String destination, String time) {
 
         if (!adjacencyList.containsKey(source) || !adjacencyList.containsKey(destination)) {
             return new RouteResult(source, destination,
@@ -129,11 +133,15 @@ public class LogisticsGraph {
         // Cache hit: valid only when stored graphVersion matches current one.
         // This means: congestion change → graphVersion bumps → cache misses
         // automatically, but all other pairs cached at the same version are still hit.
-        String     cacheKey = source + "->" + destination;
+        String     cacheKey = source + "->" + destination + (time != null ? "->" + time : "");
         CachedRoute cached  = routeCache.get(cacheKey);
         if (cached != null && cached.version == graphVersion) {
             System.out.printf("  [CACHE HIT v%d] %s%n", graphVersion, cacheKey);
             return cached.result;
+        }
+
+        if (time != null) {
+            applyTimeBasedDisruptions(time);
         }
 
         List<String> baselinePath = dijkstra(source, destination, true);
@@ -155,6 +163,34 @@ public class LogisticsGraph {
         RouteResult result = new RouteResult(source, destination, currentPath, totalTime, status);
         routeCache.put(cacheKey, new CachedRoute(result, graphVersion));
         return result;
+    }
+
+    private void applyTimeBasedDisruptions(String time) {
+        // Very basic time string parsing (HH:MM or HH)
+        int hour = 0;
+        try {
+            hour = Integer.parseInt(time.split(":")[0]);
+        } catch (Exception e) {}
+
+        if (hour >= 8 && hour <= 10) {
+            System.out.println("  [TIME EFFECT] 08:00-10:00 Morning Congestion applied (1.8x)");
+            for (List<Edge> edges : adjacencyList.values()) {
+                for (Edge e : edges) { e.setCongestionFactor(1.8); }
+            }
+            graphVersion++;
+        } else if (hour >= 12 && hour <= 14) {
+            System.out.println("  [TIME EFFECT] 12:00-14:00 Midday Construction - Risk increased");
+            for (List<Edge> edges : adjacencyList.values()) {
+                for (Edge e : edges) { e.setDisruptionRisk(e.getDisruptionRisk() + 5); }
+            }
+            graphVersion++;
+        } else if (hour >= 18 && hour <= 21) {
+            System.out.println("  [TIME EFFECT] 18:00-21:00 Evening Traffic applied (1.5x)");
+            for (List<Edge> edges : adjacencyList.values()) {
+                for (Edge e : edges) { e.setCongestionFactor(1.5); }
+            }
+            graphVersion++;
+        }
     }
 
     // ── Core Dijkstra ─────────────────────────────────────────────────────────
